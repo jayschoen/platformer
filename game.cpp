@@ -23,20 +23,30 @@ Game::Game() {
 
     sf::Text hud_debug;
 
-    sf::Vector2f debug_platformPOS[2] = {
+   const int tmp_number_of_platforms = 5;
+    sf::Vector2f debug_platformPOS[tmp_number_of_platforms] = {
         sf::Vector2f(300, 851),
-        sf::Vector2f(200, 901)
+        sf::Vector2f(200, 901),
+        sf::Vector2f(1100, 851),
+        sf::Vector2f(1300, 851),
+        sf::Vector2f(550, 726)
     };
-    sf::Vector2f debug_platformSIZE[2] = {
+    sf::Vector2f debug_platformSIZE[tmp_number_of_platforms] = {
         sf::Vector2f(500, 50),
-        sf::Vector2f(1000, 50)
+        sf::Vector2f(1500, 50),
+        sf::Vector2f(50, 50),
+        sf::Vector2f(50, 50),
+        sf::Vector2f(350, 50)
     };
-    sf::Color debug_platformCOLOR[2] = {
+    sf::Color debug_platformCOLOR[tmp_number_of_platforms] = {
         sf::Color::White,
-        sf::Color::Yellow
+        sf::Color::Yellow,
+        sf::Color::Yellow,
+        sf::Color::Yellow,
+        sf::Color::Cyan
     };
 
-    number_of_platforms = 2;
+    number_of_platforms = tmp_number_of_platforms;
     platforms = std::make_unique<Platform[]>(number_of_platforms);
     for (int i = 0; i < number_of_platforms; i++) {
         platforms[i].setPosition(debug_platformPOS[i].x, debug_platformPOS[i].y);
@@ -81,18 +91,15 @@ void Game::start() {
 
 void Game::checkPlayerCollisions() {
 
-    //std::cout << "checkPlayerCollisions()" << std::endl;
-
     sf::Vector2f collision = sf::Vector2f (0, 0);
 
-    sf::FloatRect playerxy = player.getPosition();     
+    sf::FloatRect playerxy = player.getPosition();
 
-    //std::cout << "player -- " << "L: " << playerxy.left << " T: " << playerxy.top << " W: " << playerxy.width << " H: " << playerxy.height << std::endl;   
+    Eigen::Vector2f player_velocity = player.getVelocity();  
 
     for (int i = 0; i < number_of_platforms; i++) {
 
         sf::FloatRect platformxy = platforms[i].getPosition();
-        //std::cout << "platform -- " << "L: " << platformxy.left << " T: " << platformxy.top << " W: " << platformxy.width << " H: " << platformxy.height << std::endl;
 
         // top: (L, T) <--> (L + W, T)
         // left: (L, T) <--> (L, T + H)
@@ -113,39 +120,41 @@ void Game::checkPlayerCollisions() {
         if ( floor(player_lower_left.y) == platform_upper_left.y ) {
 
             if ( player_lower_right.x >= platform_upper_left.x && player_lower_left.x <= platform_upper_right.x ) {
-                //std::cout << "on top of platform" << std::endl;
                 collision.y = 1;
             }
 
         }
 
         // hitting underside of platform
+        if ( collision.y != -1 && floor(player_upper_left.y) == platform_lower_left.y) {
+
+            if (player_upper_right.x >= platform_lower_left.x && floor(player_upper_left.x) <= platform_lower_right.x ) {
+                collision.y = -1;
+            }
+
+        }
 
         // hitting right side of platform
+        if ( floor(player_lower_left.y) > platform_upper_right.y && floor(player_upper_left.y) < platform_lower_right.y ) {
 
-        if ( floor(player_lower_left.y) > platform_upper_right.y || floor(player_upper_left.y) < platform_lower_right.y ) {
-
-            if ( player_lower_left.x == platform_upper_right.x ) {
-                //std::cout << "right side of platform" << std::endl;
+            if ( floor(player_lower_left.x) == platform_upper_right.x) {
                 collision.x = -1;
             }
 
         }
 
         //hitting left side of platform
+        if ( floor(player_lower_right.y) > platform_upper_left.y && floor(player_upper_right.y) < platform_lower_left.y ) {
 
-        if ( player_lower_right.y > floor(platform_upper_left.y) || player_upper_right.y < floor(platform_lower_left.y) ) {
-
-            if ( player_lower_right.x == floor(platform_upper_left.x) ) {
-                //std::cout << "left side of platform" << std::endl;
+            if ( floor(player_lower_right.x) == platform_upper_left.x) {
                 collision.x = 1;
             }
 
         }
 
-
+        /*
         if (collision.x != 0 || collision.y != 0) {
-            /*
+            
             std::cout << "player" << std::endl;
             std::cout << "( " << player_upper_left.x << ", " << player_upper_left.y << " )" << " -- " << "( " << player_upper_right.x << ", " << player_upper_right.y << " )" << std::endl;
             std::cout << "( " << player_lower_left.x << ", " << player_lower_left.y << " )" << " -- " << "( " << player_lower_right.x << ", " << player_lower_right.y << " )" << std::endl;
@@ -153,8 +162,9 @@ void Game::checkPlayerCollisions() {
             std::cout << "platform" << std::endl;
             std::cout << "( " << platform_upper_left.x << ", " << platform_upper_left.y << " )" << " -- " << "( " << platform_upper_right.x << ", " << platform_upper_right.y << " )" << std::endl;
             std::cout << "( " << platform_lower_left.x << ", " << platform_lower_left.y << " )" << " -- " << "( " << platform_lower_right.x << ", " << platform_lower_right.y << " )" << std::endl;
-            */
+            
         }
+        */
 
     }
 

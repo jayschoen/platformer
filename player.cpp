@@ -16,7 +16,7 @@ Player::Player() {
     velocity.x() = 0;
     velocity.y() = 0;
 
-    acceleration.x() = 0.5;
+    acceleration.x() = 0;//.5;
     acceleration.y() = 0;
 
     collision.x = 0;
@@ -85,8 +85,6 @@ Eigen::Vector2f Player::getAcceleration() {
 
 void Player::update(float elapsedTime) {
 
-    //std::cout << "player::update()" << std::endl;
-
     acceleration.x() = 0;
     acceleration.y() = gravity;
 
@@ -116,7 +114,7 @@ void Player::update(float elapsedTime) {
     }
     
     // no collision OR (collision left and acceleration right) OR (collision right and acceleration left)
-    if (collision.x == 0 || (collision.x == -1 && acceleration.x() > 0) /* || (collision.x == 1 && acceleration.x() < 0) */ ) {
+    if (collision.x == 0 || (collision.x == -1 && acceleration.x() > 0) || (collision.x == 1 && acceleration.x() < 0) ) {
 
         // apply friction to x axis only
         acceleration.x() += (velocity.x() * friction) * elapsedTime;
@@ -133,12 +131,24 @@ void Player::update(float elapsedTime) {
 
     // no collision OR (collision down and acceleration up)
     if (collision.y == 0 || (collision.y == 1 && acceleration.y() < 0) ) {
+        
+
         velocity.y() += acceleration.y();
         position.y() += (velocity.y() + (0.5 * acceleration.y())) * elapsedTime;
 
     } else {
-        acceleration.y() = acceleration_value;
+
+        acceleration.y() = gravity;
         velocity.y() = 0;
+
+        // we just hit the bottom of a platform; fall back down now
+        if (collision.y == -1) {
+            
+            collision.y = 0;
+            velocity.y() += acceleration.y();
+            position.y() += (velocity.y() + (0.5 * acceleration.y())) * elapsedTime;
+
+        }
 
     }
 
@@ -159,6 +169,6 @@ void Player::update(float elapsedTime) {
     }
         
     //sprite.setPosition(position);
-    rectangle.setPosition(sf::Vector2f(position.x(), position.y()));
+    rectangle.setPosition(sf::Vector2f(position.x(), position.y() ) );
 
 }
